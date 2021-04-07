@@ -33,9 +33,7 @@ func (mutanService) IsMutant(dna []string) bool {
 		return false
 	}
 	matrix := ConvertStringSliceToMatrix(dna)
-
 	sequenceFound := 0
-
 	indexLimit := len(dna) - expectedLength
 	for row, slice := range matrix {
 		for column, base := range slice {

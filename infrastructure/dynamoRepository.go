@@ -17,10 +17,9 @@ type Dna struct {
 	Sequence string
 }
 
-type Stats struct {
-	CountMutantDna float32
-	CountHumanDna  float32
-	Ratio          float32
+type Count struct {
+	Counter    uint64
+	ItemsCount uint64
 }
 
 const TableName = "DNA"
@@ -35,11 +34,12 @@ func connectDynamoDb() *dynamodb.DynamoDB {
 	})))
 }
 
-func GetItem() {
+//Maybe should receive as params TableName
+func GetCountOf(isMutant bool) (Count, error) {
 	params := &dynamodb.ScanInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":isMutant": {
-				S: aws.String("false"),
+				S: aws.String(strconv.FormatBool(isMutant)),
 			},
 		},
 		FilterExpression: aws.String("isMutant = :isMutant"),
@@ -52,18 +52,13 @@ func GetItem() {
 
 	if err != nil {
 		log.Fatalf("Query API call failed: %s", err)
+		return Count{}, err
 	}
 
-	count := float32(*result.Count)
-	fulCount := float32(*result.ScannedCount)
-	fmt.Sprintf("%.1f\n", count/fulCount)
-	var stats = &Stats{
-		CountHumanDna:  count,
-		CountMutantDna: fulCount - count,
-		Ratio:          count / fulCount,
-	}
-
-	fmt.Println(stats)
+	return Count{
+		Counter:    uint64(*result.Count),
+		ItemsCount: uint64(*result.ScannedCount),
+	}, nil
 }
 
 func Query() {
@@ -94,8 +89,8 @@ func Query() {
 	fmt.Println(count, fulCount)
 }
 
-func PutItem(dna Dna) {
-	output, err := dynamo.PutItem(&dynamodb.PutItemInput{
+func PutItem(dna *Dna) {
+	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"Id": {
 				S: aws.String(uuid.New().String()),
@@ -112,7 +107,5 @@ func PutItem(dna Dna) {
 
 	if err != nil {
 		fmt.Print(err)
-	} else {
-		fmt.Println(output.ConsumedCapacity)
 	}
 }
