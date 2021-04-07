@@ -84,21 +84,20 @@ func obliqueRightToLeftValidation(dna [][]string, row int, column int) bool {
 }
 
 func getFourSizeLine(dna [][]string, direction Direction, row int, column int) Line {
-	line := make([]string, expectedLength)
-	positions := make(map[int]int)
+	var line []string
+	var positions map[int]int
 
-	for i := 0; i < expectedLength; i++ {
-		switch direction {
-		case VER:
-			line[i] = dna[i+row][column]
-		case OLR:
-			line[i] = dna[row+i][column+i]
-			positions[row+i] = column + i
-		case ORL:
-			line[i] = dna[row+i][column-i]
-			positions[row+i] = column - i
-		}
+	switch direction {
+	case VER:
+		line = []string{dna[row][column], dna[row+1][column], dna[row+2][column], dna[row+3][column]}
+	case OLR:
+		line = []string{dna[row][column], dna[row+1][column+1], dna[row+2][column+2], dna[row+3][column+3]}
+		positions = map[int]int{row: column, row + 1: column + 1, row + 2: column + 2, row + 3: column + 3}
+	case ORL:
+		line = []string{dna[row][column], dna[row+1][column-1], dna[row+2][column-2], dna[row+3][column-3]}
+		positions = map[int]int{row: column, row + 1: column - 1, row + 2: column - 2, row + 3: column - 3}
 	}
+
 	return Line{
 		Positions: positions,
 		Line:      line,
