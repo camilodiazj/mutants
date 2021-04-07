@@ -5,8 +5,6 @@ type Direction int
 const (
 	HOR Direction = iota
 	VER
-	OLR
-	ORL
 )
 
 const (
@@ -50,13 +48,15 @@ func (mutanService) IsMutant(dna []string) bool {
 			rightPositionsAvailable := column <= indexLimit
 			downPositionsAvailable := row <= indexLimit
 			leftPositionsAvailable := column >= expectedLength-1
-			if rightPositionsAvailable && horizontalValidation(matrix, row, column) {
+			if rightPositionsAvailable && dna[row][column] == dna[row][column+1] && horizontalValidation(matrix, row, column) {
 				sequenceFound++
-			} else if downPositionsAvailable && verticalValidation(matrix, row, column) {
+			} else if downPositionsAvailable && dna[row][column] == dna[row+1][column] && verticalValidation(matrix, row, column) {
 				sequenceFound++
-			} else if rightPositionsAvailable && downPositionsAvailable && obliqueLeftToRightValidation(matrix, row, column) {
+			} else if rightPositionsAvailable && downPositionsAvailable && dna[row][column] == dna[row+1][column+1] &&
+				obliqueLeftToRightValidation(matrix, row, column) {
 				sequenceFound++
-			} else if downPositionsAvailable && leftPositionsAvailable && obliqueRightToLeftValidation(matrix, row, column) {
+			} else if downPositionsAvailable && leftPositionsAvailable && dna[row][column] == dna[row+1][column-1] &&
+				obliqueRightToLeftValidation(matrix, row, column) {
 				sequenceFound++
 			}
 		}
@@ -65,77 +65,35 @@ func (mutanService) IsMutant(dna []string) bool {
 }
 
 func horizontalValidation(dna [][]string, row int, column int) bool {
-	fourSizeLine := dna[row][column : column+expectedLength]
-	return validateLine(dna, fourSizeLine, row, column, HOR)
+	line := dna[row][column : column+expectedLength]
+	if AllSameStrings(line) {
+		return disableValues(dna, row, column, HOR)
+	}
+	return false
 }
 
 func verticalValidation(dna [][]string, row int, column int) bool {
-	line := validateFourSizeLine(dna, VER, row, column)
-	if line.IsSequence {
-		disableValues(dna, row, column, false)
-		return true
+	line := []string{dna[row][column], dna[row+1][column], dna[row+2][column], dna[row+3][column]}
+	if AllSameStrings(line) {
+		return disableValues(dna, row, column, VER)
 	}
 	return false
 }
 
 func obliqueLeftToRightValidation(dna [][]string, row int, column int) bool {
-	line := validateFourSizeLine(dna, OLR, row, column)
-	if line.IsSequence {
-		disableObliquesValues(dna, line.Positions)
-		return true
+	line := []string{dna[row][column], dna[row+1][column+1], dna[row+2][column+2], dna[row+3][column+3]}
+	if AllSameStrings(line) {
+		positions := map[int]int{row: column, row + 1: column + 1, row + 2: column + 2, row + 3: column + 3}
+		return disableObliquesValues(dna, positions)
 	}
 	return false
 }
 
 func obliqueRightToLeftValidation(dna [][]string, row int, column int) bool {
-	line := validateFourSizeLine(dna, ORL, row, column)
-	if line.IsSequence {
-		disableObliquesValues(dna, line.Positions)
-		return true
-	}
-	return false
-}
-
-func validateFourSizeLine(dna [][]string, direction Direction, row int, column int) Line {
-	var line []string
-	var positions map[int]int
-	isSequence := false
-
-	switch direction {
-	case VER:
-		line = []string{dna[row][column], dna[row+1][column], dna[row+2][column], dna[row+3][column]}
-		if AllSameStrings(line) {
-			isSequence = true
-		}
-	case OLR:
-		line = []string{dna[row][column], dna[row+1][column+1], dna[row+2][column+2], dna[row+3][column+3]}
-		if AllSameStrings(line) {
-			isSequence = true
-			positions = map[int]int{row: column, row + 1: column + 1, row + 2: column + 2, row + 3: column + 3}
-		}
-	case ORL:
-		line = []string{dna[row][column], dna[row+1][column-1], dna[row+2][column-2], dna[row+3][column-3]}
-		if AllSameStrings(line) {
-			isSequence = true
-			positions = map[int]int{row: column, row + 1: column - 1, row + 2: column - 2, row + 3: column - 3}
-		}
-	}
-
-	return Line{
-		Positions:  positions,
-		Line:       line,
-		IsSequence: isSequence,
-	}
-}
-
-func validateLine(dna [][]string, line []string, row int, column int, direction Direction) bool {
+	line := []string{dna[row][column], dna[row+1][column-1], dna[row+2][column-2], dna[row+3][column-3]}
 	if AllSameStrings(line) {
-		switch direction {
-		case VER:
-			return disableValues(dna, row, column, false)
-		case HOR:
-			return disableValues(dna, column, row, true)
-		}
+		positions := map[int]int{row: column, row + 1: column - 1, row + 2: column - 2, row + 3: column - 3}
+		return disableObliquesValues(dna, positions)
 	}
 	return false
 }
@@ -147,13 +105,17 @@ func disableObliquesValues(dna [][]string, positions map[int]int) bool {
 	return true
 }
 
-func disableValues(dna [][]string, init int, index int, isStaticRow bool) bool {
-	for i := init; i < init+expectedLength; i++ {
-		if isStaticRow {
-			dna[index][i] = invalidBase
-		} else {
-			dna[i][index] = invalidBase
-		}
+func disableValues(dna [][]string, row int, column int, direction Direction) bool {
+	dna[row][column] = invalidBase
+	switch direction {
+	case HOR:
+		dna[row][column+1] = invalidBase
+		dna[row][column+2] = invalidBase
+		dna[row][column+3] = invalidBase
+	case VER:
+		dna[row+1][column] = invalidBase
+		dna[row+2][column] = invalidBase
+		dna[row+3][column] = invalidBase
 	}
 	return true
 }
