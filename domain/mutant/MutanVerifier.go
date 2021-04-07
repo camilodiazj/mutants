@@ -15,8 +15,9 @@ const (
 )
 
 type Line struct {
-	Positions map[int]int
-	Line      []string
+	Positions  map[int]int
+	Line       []string
+	IsSequence bool
 }
 
 type MutanService interface {
@@ -69,38 +70,61 @@ func horizontalValidation(dna [][]string, row int, column int) bool {
 }
 
 func verticalValidation(dna [][]string, row int, column int) bool {
-	line := getFourSizeLine(dna, VER, row, column)
-	return validateLine(dna, line.Line, row, column, VER)
+	line := validateFourSizeLine(dna, VER, row, column)
+	if line.IsSequence {
+		disableValues(dna, row, column, false)
+		return true
+	}
+	return false
 }
 
 func obliqueLeftToRightValidation(dna [][]string, row int, column int) bool {
-	line := getFourSizeLine(dna, OLR, row, column)
-	return isObliqueSequence(dna, line.Line, line.Positions)
+	line := validateFourSizeLine(dna, OLR, row, column)
+	if line.IsSequence {
+		disableObliquesValues(dna, line.Positions)
+		return true
+	}
+	return false
 }
 
 func obliqueRightToLeftValidation(dna [][]string, row int, column int) bool {
-	line := getFourSizeLine(dna, ORL, row, column)
-	return isObliqueSequence(dna, line.Line, line.Positions)
+	line := validateFourSizeLine(dna, ORL, row, column)
+	if line.IsSequence {
+		disableObliquesValues(dna, line.Positions)
+		return true
+	}
+	return false
 }
 
-func getFourSizeLine(dna [][]string, direction Direction, row int, column int) Line {
+func validateFourSizeLine(dna [][]string, direction Direction, row int, column int) Line {
 	var line []string
 	var positions map[int]int
+	isSequence := false
 
 	switch direction {
 	case VER:
 		line = []string{dna[row][column], dna[row+1][column], dna[row+2][column], dna[row+3][column]}
+		if AllSameStrings(line) {
+			isSequence = true
+		}
 	case OLR:
 		line = []string{dna[row][column], dna[row+1][column+1], dna[row+2][column+2], dna[row+3][column+3]}
-		positions = map[int]int{row: column, row + 1: column + 1, row + 2: column + 2, row + 3: column + 3}
+		if AllSameStrings(line) {
+			isSequence = true
+			positions = map[int]int{row: column, row + 1: column + 1, row + 2: column + 2, row + 3: column + 3}
+		}
 	case ORL:
 		line = []string{dna[row][column], dna[row+1][column-1], dna[row+2][column-2], dna[row+3][column-3]}
-		positions = map[int]int{row: column, row + 1: column - 1, row + 2: column - 2, row + 3: column - 3}
+		if AllSameStrings(line) {
+			isSequence = true
+			positions = map[int]int{row: column, row + 1: column - 1, row + 2: column - 2, row + 3: column - 3}
+		}
 	}
 
 	return Line{
-		Positions: positions,
-		Line:      line,
+		Positions:  positions,
+		Line:       line,
+		IsSequence: isSequence,
 	}
 }
 
@@ -112,13 +136,6 @@ func validateLine(dna [][]string, line []string, row int, column int, direction 
 		case HOR:
 			return disableValues(dna, column, row, true)
 		}
-	}
-	return false
-}
-
-func isObliqueSequence(dna [][]string, line []string, positions map[int]int) bool {
-	if AllSameStrings(line) {
-		return disableObliquesValues(dna, positions)
 	}
 	return false
 }
