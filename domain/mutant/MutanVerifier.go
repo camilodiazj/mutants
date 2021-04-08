@@ -18,13 +18,13 @@ type Line struct {
 	IsSequence bool
 }
 
-type MutanService interface {
+type MutanVerifier interface {
 	IsMutant(dna []string) bool
 }
 
 type mutanService struct{}
 
-func NewMutanService() MutanService {
+func NewMutanVerifier() MutanVerifier {
 	return &mutanService{}
 }
 
