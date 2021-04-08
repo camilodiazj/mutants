@@ -30,19 +30,21 @@ func main() {
 }
 
 func getStats(w http.ResponseWriter, _ *http.Request) {
-	result, err := infrastructure.GetCountOf(true)
+	result, err := infrastructure.GetCountOf(false)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		ratioRounded := 0.0
+		humanDnaCount := result.Counter
+		mutantDnaCount := result.ItemsCount - result.Counter
 		if result.ItemsCount != 0 {
-			ratio := float32(result.Counter) / float32(result.ItemsCount)
+			ratio := float32(mutantDnaCount) / float32(humanDnaCount)
 			ratioRounded = math.Round(float64(ratio*100)) / 100
 		}
 
 		stats := &Stats{
-			CountHumanDna:  result.ItemsCount - result.Counter,
-			CountMutantDna: result.Counter,
+			CountHumanDna:  humanDnaCount,
+			CountMutantDna: mutantDnaCount,
 			Ratio:          ratioRounded,
 		}
 		res, _ := json.Marshal(stats)
