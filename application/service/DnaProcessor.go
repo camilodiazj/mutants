@@ -6,7 +6,9 @@ import (
 	"github.com/camilodiazj/mutants/domain/mutant"
 	"github.com/camilodiazj/mutants/infrastructure/repository"
 	"github.com/google/uuid"
+	"log"
 	"math"
+	"sync"
 )
 
 type Stats struct {
@@ -20,6 +22,7 @@ type Dna struct {
 }
 
 type MutantProcessor struct {
+	wg         *sync.WaitGroup
 	verifier   mutant.MutanVerifier
 	repository repository3.DnaRepository
 }
@@ -29,17 +32,20 @@ type Processor interface {
 	ProcessDna(dna *Dna) (bool, error)
 }
 
-func NewDnaProcessor() Processor {
+func NewDnaProcessor(wg *sync.WaitGroup) Processor {
 	return &MutantProcessor{
 		verifier:   mutant.NewMutanVerifier(),
 		repository: repository.NewDynamoRepository("DNA"),
+		wg:         wg,
 	}
 }
 
 func (p *MutantProcessor) ProcessDna(dna *Dna) (bool, error) {
 	verifier := p.verifier
 	isMutant := verifier.IsMutant(dna.Sequence)
-	p.saveDna(dna.Sequence, isMutant)
+	p.wg.Add(1)
+	go p.saveDna(dna.Sequence, isMutant)
+	log.Println("Is mutant ?", isMutant)
 	return isMutant, nil
 }
 
@@ -52,7 +58,7 @@ func (p *MutantProcessor) GetStats() (*Stats, error) {
 	ratioR := 0.0
 	mutantCount := result.CountResult
 	humanCount := result.TotalCount - mutantCount
-	if result.TotalCount != 0 {
+	if result.TotalCount != 0 && humanCount != 0 {
 		ratio := float32(mutantCount) / float32(humanCount)
 		ratioR = math.Round(float64(ratio*100)) / 100
 	}
@@ -75,4 +81,6 @@ func (p *MutantProcessor) saveDna(sequence []string, isMutant bool) {
 	if err != nil {
 		return
 	}
+	log.Println("Dna Persisted")
+	p.wg.Done()
 }
