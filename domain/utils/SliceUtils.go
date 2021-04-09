@@ -1,4 +1,4 @@
-package mutant
+package utils
 
 import "strings"
 

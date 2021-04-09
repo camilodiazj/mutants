@@ -2,22 +2,18 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/camilodiazj/mutants/application/dna"
+	"github.com/camilodiazj/mutants/application/service"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 type api struct {
 	router         http.Handler
-	mutantVerifier dna.Processor
+	mutantVerifier service.Processor
 }
 
 type Server interface {
 	Router() http.Handler
-}
-
-func (a *api) Router() http.Handler {
-	return a.router
 }
 
 func New() Server {
@@ -27,8 +23,12 @@ func New() Server {
 	r.HandleFunc("/stats", a.getStats).Methods(http.MethodGet)
 
 	a.router = r
-	a.mutantVerifier = dna.NewDnaProcessor()
-	return &api{}
+	a.mutantVerifier = service.NewDnaProcessor()
+	return a
+}
+
+func (a *api) Router() http.Handler {
+	return a.router
 }
 
 func (a *api) getStats(w http.ResponseWriter, _ *http.Request) {
@@ -36,7 +36,7 @@ func (a *api) getStats(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (a *api) processDna(w http.ResponseWriter, r *http.Request) {
-	var dnaSequence dna.Dna
+	var dnaSequence service.Dna
 	_ = json.NewDecoder(r.Body).Decode(&dnaSequence)
 
 	isMutant, err := a.mutantVerifier.ProcessDna(&dnaSequence)

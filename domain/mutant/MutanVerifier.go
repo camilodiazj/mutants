@@ -1,5 +1,7 @@
 package mutant
 
+import "github.com/camilodiazj/mutants/domain/utils"
+
 type Direction int
 
 const (
@@ -32,7 +34,7 @@ func (mutanService) IsMutant(dna []string) bool {
 	if !isValidDna(dna) {
 		return false
 	}
-	matrix := ConvertStringSliceToMatrix(dna)
+	matrix := utils.ConvertStringSliceToMatrix(dna)
 	sequenceFound := 0
 	indexLimit := len(dna) - expectedLength
 	for row, slice := range matrix {
@@ -64,7 +66,7 @@ func (mutanService) IsMutant(dna []string) bool {
 
 func horizontalValidation(dna [][]string, row int, column int) bool {
 	line := dna[row][column : column+expectedLength]
-	if AllSameStrings(line) {
+	if utils.AllSameStrings(line) {
 		return disableValues(dna, row, column, HOR)
 	}
 	return false
@@ -72,7 +74,7 @@ func horizontalValidation(dna [][]string, row int, column int) bool {
 
 func verticalValidation(dna [][]string, row int, column int) bool {
 	line := []string{dna[row][column], dna[row+1][column], dna[row+2][column], dna[row+3][column]}
-	if AllSameStrings(line) {
+	if utils.AllSameStrings(line) {
 		return disableValues(dna, row, column, VER)
 	}
 	return false
@@ -80,7 +82,7 @@ func verticalValidation(dna [][]string, row int, column int) bool {
 
 func obliqueLeftToRightValidation(dna [][]string, row int, column int) bool {
 	line := []string{dna[row][column], dna[row+1][column+1], dna[row+2][column+2], dna[row+3][column+3]}
-	if AllSameStrings(line) {
+	if utils.AllSameStrings(line) {
 		positions := map[int]int{row: column, row + 1: column + 1, row + 2: column + 2, row + 3: column + 3}
 		return disableObliquesValues(dna, positions)
 	}
@@ -89,7 +91,7 @@ func obliqueLeftToRightValidation(dna [][]string, row int, column int) bool {
 
 func obliqueRightToLeftValidation(dna [][]string, row int, column int) bool {
 	line := []string{dna[row][column], dna[row+1][column-1], dna[row+2][column-2], dna[row+3][column-3]}
-	if AllSameStrings(line) {
+	if utils.AllSameStrings(line) {
 		positions := map[int]int{row: column, row + 1: column - 1, row + 2: column - 2, row + 3: column - 3}
 		return disableObliquesValues(dna, positions)
 	}

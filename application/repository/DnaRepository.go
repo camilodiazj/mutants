@@ -1,6 +1,6 @@
-package dna
+package repository
 
-type Entity struct {
+type DnaEntity struct {
 	Dna      string
 	Id       string
 	IsMutant bool
@@ -11,8 +11,8 @@ type Counter struct {
 	TotalCount uint64
 }
 
-type Repository interface {
-	Save(dna *Entity) error
+type DnaRepository interface {
+	Save(dna *DnaEntity) error
 	//TODO: Change CountMutants to Cont; Less specific
 	CountMutants() (*Counter, error)
 }
