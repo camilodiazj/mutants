@@ -2,7 +2,7 @@ package service
 
 import (
 	"encoding/json"
-	repository3 "github.com/camilodiazj/mutants/application/repository"
+	dnaRepository "github.com/camilodiazj/mutants/application/repository"
 	"github.com/camilodiazj/mutants/domain/mutant"
 	"github.com/camilodiazj/mutants/infrastructure/repository"
 	"github.com/google/uuid"
@@ -24,7 +24,7 @@ type Dna struct {
 type MutantProcessor struct {
 	wg         *sync.WaitGroup
 	verifier   mutant.MutanVerifier
-	repository repository3.DnaRepository
+	repository dnaRepository.DnaRepository
 }
 
 type Processor interface {
@@ -72,7 +72,7 @@ func (p *MutantProcessor) GetStats() (*Stats, error) {
 func (p *MutantProcessor) saveDna(sequence []string, isMutant bool) {
 	r := p.repository
 	bytes, _ := json.Marshal(sequence)
-	entity := &repository3.DnaEntity{
+	entity := &dnaRepository.DnaEntity{
 		Dna:      string(bytes),
 		Id:       uuid.New().String(),
 		IsMutant: isMutant,
