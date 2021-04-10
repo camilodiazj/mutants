@@ -31,7 +31,7 @@ func NewMutanVerifier() MutanVerifier {
 }
 
 func (mutanService) IsMutant(dna []string) bool {
-	if !isValidDna(dna) {
+	if !IsValidDna(dna) {
 		return false
 	}
 	matrix := utils.ConvertStringSliceToMatrix(dna)

@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/camilodiazj/mutants/application/repository"
 	"log"
 	"strconv"
@@ -11,13 +11,13 @@ import (
 
 type dynamoRepository struct {
 	table  string
-	dynamo *dynamodb.DynamoDB
+	dynamo dynamodbiface.DynamoDBAPI
 }
 
-func NewDynamoRepository(tableName string) repository.DnaRepository {
+func NewDynamoRepository(tableName string, dynamo dynamodbiface.DynamoDBAPI) repository.DnaRepository {
 	return &dynamoRepository{
 		table:  tableName,
-		dynamo: connectDynamoDb()}
+		dynamo: dynamo}
 }
 
 func (r *dynamoRepository) Save(dna *repository.DnaEntity) error {
@@ -66,10 +66,4 @@ func (r *dynamoRepository) CountMutants() (*repository.Counter, error) {
 		CountResult: uint64(*result.Count),
 		TotalCount:  uint64(*result.ScannedCount),
 	}, nil
-}
-
-func connectDynamoDb() *dynamodb.DynamoDB {
-	return dynamodb.New(session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-east-2"),
-	})))
 }

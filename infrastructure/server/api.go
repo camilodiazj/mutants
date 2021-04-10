@@ -2,7 +2,13 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/camilodiazj/mutants/application/service"
+	"github.com/camilodiazj/mutants/domain/mutant"
+	"github.com/camilodiazj/mutants/infrastructure/repository"
 	"github.com/gorilla/mux"
 	"net/http"
 	"sync"
@@ -26,7 +32,7 @@ func New() Server {
 	r.HandleFunc("/stats", a.getStats).Methods(http.MethodGet)
 
 	a.router = r
-	a.mutantVerifier = service.NewDnaProcessor(&wg)
+	a.mutantVerifier = service.NewDnaProcessor(&wg, mutant.NewMutanVerifier(), repository.NewDynamoRepository("DNA", ConfigureDynamoDB()))
 	wg.Wait()
 	return a
 }
@@ -61,4 +67,11 @@ func (a *api) processDna(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusForbidden)
 	}
+}
+
+//TODO: Move to configurations file or something like that
+func ConfigureDynamoDB() dynamodbiface.DynamoDBAPI {
+	awsSession, _ := session.NewSession(&aws.Config{Region: aws.String("us-east-2")})
+	svc := dynamodb.New(awsSession)
+	return dynamodbiface.DynamoDBAPI(svc)
 }

@@ -13,6 +13,5 @@ type Counter struct {
 
 type DnaRepository interface {
 	Save(dna *DnaEntity) error
-	//TODO: Change CountMutants to Cont; Less specific
 	CountMutants() (*Counter, error)
 }

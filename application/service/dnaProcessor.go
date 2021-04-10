@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	dnaRepository "github.com/camilodiazj/mutants/application/repository"
 	"github.com/camilodiazj/mutants/domain/mutant"
-	"github.com/camilodiazj/mutants/infrastructure/repository"
 	"github.com/google/uuid"
 	"log"
 	"math"
@@ -32,10 +31,10 @@ type Processor interface {
 	ProcessDna(dna *Dna) (bool, error)
 }
 
-func NewDnaProcessor(wg *sync.WaitGroup) Processor {
+func NewDnaProcessor(wg *sync.WaitGroup, verifier mutant.MutanVerifier, repository dnaRepository.DnaRepository) Processor {
 	return &MutantProcessor{
-		verifier:   mutant.NewMutanVerifier(),
-		repository: repository.NewDynamoRepository("DNA"),
+		verifier:   verifier,
+		repository: repository,
 		wg:         wg,
 	}
 }
