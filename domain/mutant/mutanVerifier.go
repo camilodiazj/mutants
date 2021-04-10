@@ -1,6 +1,10 @@
 package mutant
 
-import "github.com/camilodiazj/mutants/domain/utils"
+import (
+	"errors"
+	"github.com/camilodiazj/mutants/domain/utils"
+	"log"
+)
 
 type Direction int
 
@@ -21,7 +25,7 @@ type Line struct {
 }
 
 type MutanVerifier interface {
-	IsMutant(dna []string) bool
+	IsMutant(dna []string) (bool, error)
 }
 
 type mutanService struct{}
@@ -30,9 +34,10 @@ func NewMutanVerifier() MutanVerifier {
 	return &mutanService{}
 }
 
-func (mutanService) IsMutant(dna []string) bool {
-	if !isValidDna(dna) {
-		return false
+func (mutanService) IsMutant(dna []string) (bool, error) {
+	if !IsValidDna(dna) {
+		log.Println("Fail due invalid DNA input")
+		return false, errors.New("invalid DNA")
 	}
 	matrix := utils.ConvertStringSliceToMatrix(dna)
 	sequenceFound := 0
@@ -40,7 +45,7 @@ func (mutanService) IsMutant(dna []string) bool {
 	for row, slice := range matrix {
 		for column, base := range slice {
 			if sequenceFound > 1 {
-				return true
+				return true, nil
 			}
 			if base == invalidBase {
 				continue
@@ -61,7 +66,7 @@ func (mutanService) IsMutant(dna []string) bool {
 			}
 		}
 	}
-	return false
+	return false, nil
 }
 
 func horizontalValidation(dna [][]string, row int, column int) bool {

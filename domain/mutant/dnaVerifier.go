@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func isValidDna(dna []string) bool {
+func IsValidDna(dna []string) bool {
 	validBases := regexp.MustCompile(`^[ATCG]+$`).MatchString
 	expectedSize := len(dna) * len(dna)
 	nitrogenBases := strings.Join(dna, "")
