@@ -33,16 +33,18 @@ directory.
 Run `go test ./... -cover` to execute the unit tests with coverage.
 
 ## Run
-Into the root project `cd mutants`
+* If you are in Windows, is recommended to use Git Bash to run the bash commands.
+* Into the root project `cd mutants`
 
 - You need a connection to AWS DynamoDB to persist data, to achieved it You need the
   following credentials saved into your environment variables. 
+  * (Attached policy with only following actions: dynamodb:PutItem, dynamodb:Scan)
   
 ```bash
-export AWS_ACCESS_KEY_ID=
-export AWS_SECRET_ACCESS_KEY=
+export AWS_ACCESS_KEY_ID=AKIA5AIRNRRBJQLQV2UU
+export AWS_SECRET_ACCESS_KEY=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
 ```
-* Once you have a connection with database, build the artifact:
+* Once you have credentials to DynamoDb connection, build the artifact:
 ```bash
 go build
 ```
