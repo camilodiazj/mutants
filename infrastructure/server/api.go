@@ -20,7 +20,7 @@ func New(injections *configuration.Injections) Server {
 	a := &api{}
 	r := injections.Router
 	a.processor = injections.Processor
-	r.HandleFunc("/mutant", a.processDna).Methods(http.MethodPost)
+	r.HandleFunc("/mutant/", a.processDna).Methods(http.MethodPost)
 	r.HandleFunc("/stats", a.getStats).Methods(http.MethodGet)
 	a.router = r
 	return a

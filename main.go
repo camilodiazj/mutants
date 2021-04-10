@@ -7,7 +7,11 @@ import (
 	"net/http"
 )
 
+const port = ":8000"
+
 func main() {
 	s := server.New(configuration.GetInjections())
-	log.Fatal(http.ListenAndServe(":8000", s.Router()))
+	log.Println("Init mutants API REST")
+	log.Println("Listening on Port: ", port)
+	log.Fatal(http.ListenAndServe(port, s.Router()))
 }

@@ -2,7 +2,7 @@
 
 [![go](https://img.shields.io/badge/go-v1.13.X-cyan.svg)](https://golang.org/)
 
->A simple Golang project to verify if DNA is from Mutant or Human
+> A simple Golang project to verify if DNA is from Mutant or Human
 >
 >Developed by Camilo Díaz Jaimes
 
@@ -25,8 +25,34 @@ Following you can find the instructions:
 
 ## Build
 
-Run `go build` to build the project. The build artifacts will be stored in the Root of the directory.
+Run `go build` to build the project. The build artifacts will be stored in the Root of the
+directory.
 
 ## Running tests coverage
 
 Run `go test ./... -cover` to execute the unit tests with coverage.
+
+## Run
+Into the root project `cd mutants`
+
+- You need a connection to AWS DynamoDB to persist data, to achieved it You need the
+  following credentials saved into your environment variables. 
+  
+```bash
+export AWS_ACCESS_KEY_ID=
+export AWS_SECRET_ACCESS_KEY=
+```
+* Once you have a connection with database, build the artifact:
+```bash
+go build
+```
+* Next, you need to change the access permission of file to be executable:
+```bash
+sudo chmod +x mutants
+```
+* Run mutants application
+```bash
+./mutants
+```
+> Is recommended to use [POSTMAN](https://www.postman.com/) to consume the Endpoints.
+> Postman Collection in `mutants/postman_collection.json`  
