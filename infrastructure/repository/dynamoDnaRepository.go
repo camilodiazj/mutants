@@ -5,22 +5,21 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/camilodiazj/mutants/application/repository"
-	"log"
 	"strconv"
 )
 
-type dynamoRepository struct {
+type dynamoDnaRepository struct {
 	table  string
 	dynamo dynamodbiface.DynamoDBAPI
 }
 
 func NewDynamoRepository(tableName string, dynamo dynamodbiface.DynamoDBAPI) repository.DnaRepository {
-	return &dynamoRepository{
+	return &dynamoDnaRepository{
 		table:  tableName,
 		dynamo: dynamo}
 }
 
-func (r *dynamoRepository) Save(dna *repository.DnaEntity) error {
+func (r *dynamoDnaRepository) Save(dna *repository.DnaEntity) error {
 	dynamo := r.dynamo
 	_, err := dynamo.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
@@ -42,7 +41,7 @@ func (r *dynamoRepository) Save(dna *repository.DnaEntity) error {
 	return nil
 }
 
-func (r *dynamoRepository) CountMutants() (*repository.Counter, error) {
+func (r *dynamoDnaRepository) CountMutants() (*repository.Count, error) {
 	dynamo := r.dynamo
 	params := &dynamodb.ScanInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
@@ -58,11 +57,10 @@ func (r *dynamoRepository) CountMutants() (*repository.Counter, error) {
 	result, err := dynamo.Scan(params)
 
 	if err != nil {
-		log.Fatalf("Query API call failed: %s", err)
-		return &repository.Counter{}, err
+		return &repository.Count{}, err
 	}
 
-	return &repository.Counter{
+	return &repository.Count{
 		CountResult: uint64(*result.Count),
 		TotalCount:  uint64(*result.ScannedCount),
 	}, nil

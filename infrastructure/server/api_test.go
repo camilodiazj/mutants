@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/camilodiazj/mutants/application/service"
 	"github.com/camilodiazj/mutants/infrastructure/configuration"
 	"github.com/gorilla/mux"
@@ -35,6 +36,22 @@ func TestRouterGETStatsEndpoint(t *testing.T) {
 	}
 }
 
+func TestRouterGETStatsEndpointShouldResponseInternalServerError(t *testing.T) {
+	newHttpRecorder := httptest.NewRecorder()
+	newRouter := mux.NewRouter()
+	injections = &configuration.Injections{
+		Processor: &processMock{true},
+		Router:    newRouter,
+	}
+	newServer := New(injections)
+	newServer.Router()
+	newRouter.ServeHTTP(newHttpRecorder, httptest.NewRequest(http.MethodGet, "/stats", nil))
+
+	if newHttpRecorder.Code != http.StatusInternalServerError {
+		t.Error("Did not get expected HTTP status code, got", newHttpRecorder.Code)
+	}
+}
+
 func TestRouterPOSTProcessDNA(t *testing.T) {
 	server.Router()
 	input := []string{"ATGCGA"}
@@ -46,9 +63,32 @@ func TestRouterPOSTProcessDNA(t *testing.T) {
 	}
 }
 
-type processMock struct{}
+func TestRouterPOSTProcessDNAShouldFailDueError(t *testing.T) {
+	newHttpRecorder := httptest.NewRecorder()
+	newRouter := mux.NewRouter()
+	injections = &configuration.Injections{
+		Processor: &processMock{true},
+		Router:    newRouter,
+	}
+	newServer := New(injections)
+	newServer.Router()
+	input := []string{"ATGCGA"}
+	res, _ := json.Marshal(input)
+	newRouter.ServeHTTP(newHttpRecorder, httptest.NewRequest(http.MethodPost, "/mutant", bytes.NewReader(res)))
 
-func (*processMock) GetStats() (*service.Stats, error) {
+	if newHttpRecorder.Code != http.StatusForbidden {
+		t.Error("Did not get expected HTTP status code, got", httpRecorder.Code)
+	}
+}
+
+type processMock struct {
+	shouldFail bool
+}
+
+func (p *processMock) GetStats() (*service.Stats, error) {
+	if p.shouldFail {
+		return &service.Stats{}, errors.New("Fail Get Stats")
+	}
 	return &service.Stats{
 		CountMutantDna: 10,
 		CountHumanDna:  15,
@@ -56,6 +96,9 @@ func (*processMock) GetStats() (*service.Stats, error) {
 	}, nil
 }
 
-func (*processMock) ProcessDna(dna *service.Dna) (bool, error) {
+func (p *processMock) ProcessDna(dna *service.Dna) (bool, error) {
+	if p.shouldFail {
+		return false, errors.New("Fail Get Stats")
+	}
 	return true, nil
 }

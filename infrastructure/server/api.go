@@ -34,11 +34,12 @@ func (a *api) getStats(w http.ResponseWriter, _ *http.Request) {
 	stats, err := a.processor.GetStats()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		res, _ := json.Marshal(stats)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(res)
 	}
-	res, _ := json.Marshal(stats)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
 }
 
 func (a *api) processDna(w http.ResponseWriter, r *http.Request) {
@@ -47,13 +48,9 @@ func (a *api) processDna(w http.ResponseWriter, r *http.Request) {
 
 	isMutant, err := a.processor.ProcessDna(&dnaSequence)
 
-	if err != nil {
+	if err != nil || !isMutant {
 		w.WriteHeader(http.StatusForbidden)
-	}
-
-	if isMutant {
-		w.WriteHeader(http.StatusOK)
 	} else {
-		w.WriteHeader(http.StatusForbidden)
+		w.WriteHeader(http.StatusOK)
 	}
 }

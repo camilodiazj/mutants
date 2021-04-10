@@ -6,12 +6,12 @@ type DnaEntity struct {
 	IsMutant bool
 }
 
-type Counter struct {
+type Count struct {
 	CountResult uint64
 	TotalCount uint64
 }
 
 type DnaRepository interface {
 	Save(dna *DnaEntity) error
-	CountMutants() (*Counter, error)
+	CountMutants() (*Count, error)
 }

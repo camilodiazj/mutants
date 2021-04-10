@@ -1,43 +1,64 @@
 package service
 
 import (
+	"errors"
 	"github.com/camilodiazj/mutants/application/repository"
 	"github.com/stretchr/testify/assert"
-	"sync"
 	"testing"
 )
 
-var processor Processor
+var processorTester Processor
 
 func init() {
-	wg := sync.WaitGroup{} //TODO: Mock
-	processor = NewDnaProcessor(&wg, &mutanServiceMock{}, &dynamoRepositoryMock{})
+	processorTester = NewDnaProcessor(&mutanServiceMock{}, &dynamoRepositoryMock{})
 }
 
 func TestProcessDna(t *testing.T) {
-	_, err := processor.ProcessDna(&Dna{[]string{"", ""}})
+	_, err := processorTester.ProcessDna(&Dna{[]string{"", ""}})
 	assert.Nil(t, err)
 }
 
+func TestProcessDnaShouldFailDueInvalidDna(t *testing.T) {
+	processorTester = NewDnaProcessor(&mutanServiceMock{true}, &dynamoRepositoryMock{})
+	_, err := processorTester.ProcessDna(&Dna{[]string{"", ""}})
+	assert.NotNil(t, err)
+}
+
 func TestGetStats(t *testing.T) {
-	stats, _ := processor.GetStats()
+	stats, _ := processorTester.GetStats()
 	assert.Equal(t, uint64(10), stats.CountMutantDna)
 }
 
-type mutanServiceMock struct{}
-
-func (mutanServiceMock) IsMutant(dna []string) bool {
-	return true
+func TestGetStatsShouldFailDueDbError(t *testing.T) {
+	processorTester = NewDnaProcessor(&mutanServiceMock{}, &dynamoRepositoryMock{true})
+	_, err := processorTester.GetStats()
+	assert.NotNil(t, err)
 }
 
-type dynamoRepositoryMock struct{}
+func (s mutanServiceMock) IsMutant(dna []string) (bool, error) {
+	if s.isInvalidDna {
+		return false, errors.New("Invalid Dna")
+	}
+	return true, nil
+}
+
+type mutanServiceMock struct{
+	isInvalidDna bool
+}
+
+type dynamoRepositoryMock struct{
+	isDeadService bool
+}
 
 func (r *dynamoRepositoryMock) Save(dna *repository.DnaEntity) error {
 	return nil
 }
 
-func (r *dynamoRepositoryMock) CountMutants() (*repository.Counter, error) {
-	return &repository.Counter{
+func (r *dynamoRepositoryMock) CountMutants() (*repository.Count, error) {
+	if r.isDeadService {
+		return nil, errors.New("dead")
+	}
+	return &repository.Count{
 		CountResult: 10,
 		TotalCount:  15,
 	}, nil

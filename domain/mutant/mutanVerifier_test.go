@@ -14,7 +14,7 @@ func TestIsMutant(t *testing.T) {
 		"CCCCTA",
 		"TCACGG"}
 	verifier := NewMutanVerifier()
-	result := verifier.IsMutant(input)
+	result, _ := verifier.IsMutant(input)
 	assert.True(t, result)
 }
 
@@ -27,20 +27,20 @@ func TestIsMutantWithDifferentOrder(t *testing.T) {
 		"CCCCTA",
 		"TCACGG"}
 	verifier := NewMutanVerifier()
-	result := verifier.IsMutant(input)
+	result, _ := verifier.IsMutant(input)
 	assert.True(t, result)
 }
 
 func TestIsMutantShouldReturnFalse(t *testing.T) {
 	input := []string{"ATGCGA", "CCGTTC", "TTATGT", "AGAAGG", "CCCCTA", "TCACGG"}
 	verifier := NewMutanVerifier()
-	result := verifier.IsMutant(input)
+	result, _ := verifier.IsMutant(input)
 	assert.False(t, result)
 }
 
 func TestIsMutantShouldReturnFalseDueNonSequence(t *testing.T) {
 	input := []string{"ATGCGA", "CCGTTC", "TTATGT", "AGAAGG", "CCCGTA", "TCXCGG"}
 	verifier := NewMutanVerifier()
-	result := verifier.IsMutant(input)
+	result, _ := verifier.IsMutant(input)
 	assert.False(t, result)
 }

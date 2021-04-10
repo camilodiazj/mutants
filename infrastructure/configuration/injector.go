@@ -9,10 +9,9 @@ import (
 	"github.com/camilodiazj/mutants/domain/mutant"
 	"github.com/camilodiazj/mutants/infrastructure/repository"
 	"github.com/gorilla/mux"
-	"sync"
 )
 
-var wg sync.WaitGroup
+const tableName = "DNA"
 
 type Injections struct {
 	Processor service.Processor
@@ -21,15 +20,15 @@ type Injections struct {
 
 func GetInjections() *Injections {
 	verifier := mutant.NewMutanVerifier()
-	dynamoRepository := repository.NewDynamoRepository("DNA", configureDynamoDB())
+	dynamoRepository := repository.NewDynamoRepository(tableName, configureDynamoDB())
 	return &Injections{
-		Processor: service.NewDnaProcessor(&wg, verifier, dynamoRepository),
+		Processor: service.NewDnaProcessor(verifier, dynamoRepository),
 		Router:    mux.NewRouter(),
 	}
 }
 
 func configureDynamoDB() dynamodbiface.DynamoDBAPI {
 	awsSession, _ := session.NewSession(&aws.Config{Region: aws.String("us-east-2")})
-	svc := dynamodb.New(awsSession)
-	return dynamodbiface.DynamoDBAPI(svc)
+	dynamoSession := dynamodb.New(awsSession)
+	return dynamodbiface.DynamoDBAPI(dynamoSession)
 }

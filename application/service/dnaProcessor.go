@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"log"
 	"math"
-	"sync"
 )
 
 type Stats struct {
@@ -20,8 +19,7 @@ type Dna struct {
 	Sequence []string `json:"dna"`
 }
 
-type MutantProcessor struct {
-	wg         *sync.WaitGroup
+type dnaProcessor struct {
 	verifier   mutant.MutanVerifier
 	repository dnaRepository.DnaRepository
 }
@@ -31,24 +29,25 @@ type Processor interface {
 	ProcessDna(dna *Dna) (bool, error)
 }
 
-func NewDnaProcessor(wg *sync.WaitGroup, verifier mutant.MutanVerifier, repository dnaRepository.DnaRepository) Processor {
-	return &MutantProcessor{
+func NewDnaProcessor(verifier mutant.MutanVerifier, repository dnaRepository.DnaRepository) Processor {
+	return &dnaProcessor{
 		verifier:   verifier,
 		repository: repository,
-		wg:         wg,
 	}
 }
 
-func (p *MutantProcessor) ProcessDna(dna *Dna) (bool, error) {
+func (p *dnaProcessor) ProcessDna(dna *Dna) (bool, error) {
 	verifier := p.verifier
-	isMutant := verifier.IsMutant(dna.Sequence)
-	p.wg.Add(1)
+	isMutant, err := verifier.IsMutant(dna.Sequence)
+	if err != nil {
+		return false, err
+	}
 	go p.saveDna(dna.Sequence, isMutant)
 	log.Println("Is mutant ?", isMutant)
 	return isMutant, nil
 }
 
-func (p *MutantProcessor) GetStats() (*Stats, error) {
+func (p *dnaProcessor) GetStats() (*Stats, error) {
 	r := p.repository
 	result, err := r.CountMutants()
 	if err != nil {
@@ -68,7 +67,7 @@ func (p *MutantProcessor) GetStats() (*Stats, error) {
 	}, nil
 }
 
-func (p *MutantProcessor) saveDna(sequence []string, isMutant bool) {
+func (p *dnaProcessor) saveDna(sequence []string, isMutant bool) {
 	r := p.repository
 	bytes, _ := json.Marshal(sequence)
 	entity := &dnaRepository.DnaEntity{
@@ -76,10 +75,6 @@ func (p *MutantProcessor) saveDna(sequence []string, isMutant bool) {
 		Id:       uuid.New().String(),
 		IsMutant: isMutant,
 	}
-	err := r.Save(entity)
-	if err != nil {
-		return
-	}
+	r.Save(entity)
 	log.Println("Dna Persisted")
-	p.wg.Done()
 }
