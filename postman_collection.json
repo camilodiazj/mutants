@@ -1,0 +1,62 @@
+{
+	"info": {
+		"_postman_id": "80636e2f-60e2-4a07-a105-c14b1f284000",
+		"name": "Mutants",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Validate Dna",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"dna\":[\"ATGCGA\",\n           \"CAGTGC\",\n           \"TTATGT\",\n           \"AGGACT\",\n           \"CCCCTA\",\n           \"TCACCG\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/mutant/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"mutant",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Stats from DB",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:8000/stats",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"stats"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

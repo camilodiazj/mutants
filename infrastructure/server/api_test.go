@@ -56,7 +56,7 @@ func TestRouterPOSTProcessDNA(t *testing.T) {
 	server.Router()
 	input := []string{"ATGCGA"}
 	res, _ := json.Marshal(input)
-	router.ServeHTTP(httpRecorder, httptest.NewRequest(http.MethodPost, "/mutant", bytes.NewReader(res)))
+	router.ServeHTTP(httpRecorder, httptest.NewRequest(http.MethodPost, "/mutant/", bytes.NewReader(res)))
 
 	if httpRecorder.Code != http.StatusOK {
 		t.Error("Did not get expected HTTP status code, got", httpRecorder.Code)
@@ -74,7 +74,7 @@ func TestRouterPOSTProcessDNAShouldFailDueError(t *testing.T) {
 	newServer.Router()
 	input := []string{"ATGCGA"}
 	res, _ := json.Marshal(input)
-	newRouter.ServeHTTP(newHttpRecorder, httptest.NewRequest(http.MethodPost, "/mutant", bytes.NewReader(res)))
+	newRouter.ServeHTTP(newHttpRecorder, httptest.NewRequest(http.MethodPost, "/mutant/", bytes.NewReader(res)))
 
 	if newHttpRecorder.Code != http.StatusForbidden {
 		t.Error("Did not get expected HTTP status code, got", httpRecorder.Code)
